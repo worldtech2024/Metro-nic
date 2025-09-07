@@ -36,7 +36,7 @@ class OrderResource extends JsonResource
             'customer'             => $this->user->name,
             'admin'             => $this->admin->name,
             // 'customerFileNumber'   => $this->CustomerFileNumber ?: '',
-            // 'send'                 => $this->send,
+            'send'                 => $this->send,
             // 'description'          => $this->description ?: '',
             'status'               => $this->status,
             'deadline'             => $this->deadline,

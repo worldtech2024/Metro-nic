@@ -52,9 +52,9 @@ Route::middleware(['auth:sanctum', EnsureUser::class])->group(function () {
 
     // -----------------Orders-----------------
 
-
+    Route::get('orders/created', [OrderController::class, 'myOrders']);
     Route::get('orders/completed', [OrderController::class, 'myCompletedOrders']);
-    Route::get('orders/employee', [OrderController::class, 'myOrders']);
+    // Route::get('orders/employee', [OrderController::class, 'myOrders']);
     Route::get('orders/purchases', [OrderController::class, 'myOderBuy']);
     Route::get('orders/installs', [OrderController::class, 'myOderInstall']);
     Route::get('/orders', [OrderController::class, 'index']);

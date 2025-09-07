@@ -99,7 +99,7 @@ class AuthAdminController extends Controller
                 return ApiResponse::errorResponse(false, 'Invalid credentials.');
             }
 
-            if ($request->type === 'app' && $user->role === 'admin' || $user->role === 'controller' || $user->role === 'power') {
+            if ($request->type === 'app' && ($user->role === 'admin' || $user->role === 'control' || $user->role === 'power')) {
                 return ApiResponse::errorResponse(false, 'Admins cannot login from app');
             }
 

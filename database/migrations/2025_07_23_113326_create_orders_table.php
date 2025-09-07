@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->foreignId('user_id')->nullable()->constrained('users')->nullable();
             $table->foreignId('admin_buy_id')->nullable()->constrained('admins')->nullOnDelete();
             $table->foreignId('admin_install_id')->nullable()->constrained('admins')->nullOnDelete();
-
+            $table->boolean('sendNotification')->default(false);
 
             // --------------------Data of the project-----------------------------------
             $table->string('orderNumber')->unique();

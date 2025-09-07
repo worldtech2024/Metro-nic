@@ -8,6 +8,8 @@ use App\Models\Busbare;
 use App\Models\Order;
 use App\Models\OrderUnit;
 use App\Models\ProductUnit;
+use App\Models\User;
+use App\Notifications\SalesCreateOrderNotification;
 use App\Notifications\UpdateOrderNotification;
 use App\Trait\ApiResponse;
 use Carbon\Carbon;
@@ -19,10 +21,10 @@ class OrderController extends Controller
 {
     use \App\Trait\ApiFilterPaginate;
 
-     public function show(Order $order)
+    public function show(Order $order)
     {
         $order = Order::with([
-          'user', 'admin', 'orderUnits.productUnits', 'orderUnits.busbares', 'admin_buy', 'admin_install', 'admin.country', 'user.country', 'admin_buy.country', 'admin_install.country'
+            'user', 'admin', 'orderUnits.productUnits', 'orderUnits.busbares', 'admin_buy', 'admin_install', 'admin.country', 'user.country', 'admin_buy.country', 'admin_install.country',
         ])->find($order->id);
         // dd($order->orderUnits);
 
@@ -31,15 +33,16 @@ class OrderController extends Controller
     public function index(Request $request)
     {
 
-        $country = Auth::user()->country_id;
-        $type    = Auth::user()->role;
+        $country = Auth::user()->country_id; // get country of admin login using token
+        $type    = Auth::user()->role;       // get role of admin login using token
 
         if ($type == 'power') {
             $orders = $this->filterPaginateResource(
                 $request,
                 Order::query()->where('send', 'power')->where('country_id', $country)->latest(),
+                // give all orders where send is power and country is admin country
                 ['projectName', 'status'],
-                // ['user', 'admin', 'orderUnits.productUnits', 'orderUnits.busbares', 'admin_buy', 'admin_install', 'admin.country', 'user.country', 'admin_buy.country', 'admin_install.country'],
+                // search projectName and status
                 [],
                 OrderResource::class,
                 10
@@ -48,9 +51,9 @@ class OrderController extends Controller
             $orders = $this->filterPaginateResource(
                 $request,
                 Order::query()->where('send', 'control')->where('country_id', $country)->latest(),
+                // give all orders where send is control and country is admin country
                 ['projectName', 'status'],
                 [],
-                // ['user', 'admin', 'orderUnits.productUnits', 'orderUnits.busbares', 'admin_buy', 'admin_install', 'admin.country', 'user.country', 'admin_buy.country', 'admin_install.country'],
                 OrderResource::class,
                 10
             );
@@ -58,13 +61,30 @@ class OrderController extends Controller
             $orders = $this->filterPaginateResource(
                 $request,
                 Order::query()->where('country_id', $country)->latest(),
+                // give all orders where country is admin country
                 ['projectName', 'status'],
                 [],
-                // ['user', 'admin', 'orderUnits.productUnits', 'orderUnits.busbares', 'admin_buy', 'admin_install', 'admin.country', 'user.country', 'admin_buy.country', 'admin_install.country'],
                 OrderResource::class,
                 10
             );
         }
+
+        return ApiResponse::sendResponse(true, 'Orders Retrieved Successfully', $orders);
+    }
+
+    public function myOrders(Request $request)
+    {
+        $user = Auth::user();
+
+        $orders = $this->filterPaginateResource(
+            $request,
+            Order::query()->where('admin_id', $user->id)->latest(),
+            ['projectName', 'status'],
+            // search projectName and status
+            [],
+            OrderResource::class,
+            10
+        );
 
         return ApiResponse::sendResponse(true, 'Orders Retrieved Successfully', $orders);
     }
@@ -104,7 +124,7 @@ class OrderController extends Controller
 
     public function myCompletedOrders(Request $request)
     {
-        $user = Auth::user();
+        $user  = Auth::user();
         $query = Order::query()
             ->where(function ($q) use ($user) {
                 $q->where('admin_buy_id', $user->id)
@@ -114,18 +134,7 @@ class OrderController extends Controller
                 $q->where('status', 'purchased')
                     ->orWhere('status', 'installed');
             })
-            ->with([
-                // 'user',
-                // 'admin',
-                // 'admin.country',
-                // 'user.country',
-                // 'admin_buy.country', 'admin_install.country',
-                // 'orderUnits.productUnits',
-                // 'orderUnits.busbares',
-                // 'admin_buy:id,name,email',
-                // 'admin_install:id,name,email',
-
-            ])
+            ->with([])
             ->latest();
 
         if ($request->filled('name')) {
@@ -180,8 +189,6 @@ class OrderController extends Controller
     //     return ApiResponse::sendResponse(true, 'Orders Retrieved Successfully', $orders);
     // }
 
-
-
     public function store(Request $request)
     {
         $order = $request->validate([
@@ -197,7 +204,7 @@ class OrderController extends Controller
         $order['admin_id']    = Auth::user()->id;
         $order['orderNumber'] = rand(1000000000, 9999999999);
         $order['description'] = $request->description;
-        $order['country_id']  = $request->user_id;
+        $order['country_id']  = User::find($order['user_id'])->country_id;
         $order                = Order::create($order);
         $order['description'] = $request->description ?? '';
         return ApiResponse::sendResponse(true, 'Order created successfully', $order);
@@ -209,33 +216,33 @@ class OrderController extends Controller
             'order_id'                                 => 'required|exists:orders,id',
             'status'                                   => 'required|in:addRequest,negotiationStage,sendPurchase,purchased,sendInstall,installed,clientDidNotRespond,projectCancelled',
             'customerFileNumber'                       => 'required|integer',
-            'order_units'                              => 'required|array',
+            'order_units'                              => 'nullable|array',
 
-            'order_units.*.name'                       => 'required|string',
-            'order_units.*.product_units'              => 'required|array',
-            'order_units.*.product_units.*.product_id' => 'required|exists:products,id',
-            'order_units.*.product_units.*.quantity'   => 'required|integer|min:1',
+            'order_units.*.name'                       => 'nullable|string',
+            'order_units.*.product_units'              => 'nullable|array',
+            'order_units.*.product_units.*.product_id' => 'nullable|exists:products,id',
+            'order_units.*.product_units.*.quantity'   => 'nullable|integer|min:1',
 
             'order_units.*.busbars'                    => 'nullable|array',
-            'order_units.*.busbars.*.amp'              => 'required|numeric',
+            'order_units.*.busbars.*.amp'              => 'nullable|numeric',
             'order_units.*.busbars.*.pl'               => 'nullable|numeric',
-            'order_units.*.busbars.*.up'               => 'required|numeric',
-            'order_units.*.busbars.*.qty'              => 'required|integer|min:1',
-            'order_units.*.busbars.*.priceForMeter'    => 'required|numeric',
+            'order_units.*.busbars.*.up'               => 'nullable|numeric',
+            'order_units.*.busbars.*.qty'              => 'nullable|integer|min:1',
+            'order_units.*.busbars.*.priceForMeter'    => 'nullable|numeric',
 
-            'order_units.*.generalCost'                => 'required|numeric',
-            'order_units.*.generalCostPercentage'      => 'required|numeric',
-            'order_units.*.workWages'                  => 'required|numeric',
-            'order_units.*.workWagesPercentage'        => 'required|numeric',
-            'order_units.*.profitMargin'               => 'required|numeric',
-            'order_units.*.profitMarginPercentage'     => 'required|numeric',
-            'order_units.*.vat'                        => 'required|numeric',
-            'order_units.*.vatPercentage'              => 'required|numeric',
-            'order_units.*.brandDiscount'              => 'required|numeric',
-            'order_units.*.finalDiscount'              => 'required|numeric',
-            'order_units.*.totalPrice'                 => 'required|numeric',
-            'order_units.*.totalBusbar'                => 'required|numeric',
-            'order_units.*.subTotal'                   => 'required|numeric',
+            'order_units.*.generalCost'                => 'nullable|numeric',
+            'order_units.*.generalCostPercentage'      => 'nullable|numeric',
+            'order_units.*.workWages'                  => 'nullable|numeric',
+            'order_units.*.workWagesPercentage'        => 'nullable|numeric',
+            'order_units.*.profitMargin'               => 'nullable|numeric',
+            'order_units.*.profitMarginPercentage'     => 'nullable|numeric',
+            'order_units.*.vat'                        => 'nullable|numeric',
+            'order_units.*.vatPercentage'              => 'nullable|numeric',
+            'order_units.*.brandDiscount'              => 'nullable|numeric',
+            'order_units.*.finalDiscount'              => 'nullable|numeric',
+            'order_units.*.totalPrice'                 => 'nullable|numeric',
+            'order_units.*.totalBusbar'                => 'nullable|numeric',
+            'order_units.*.subTotal'                   => 'nullable|numeric',
             'order_units.*.notes'                      => 'nullable|string',
 
         ]);
@@ -301,6 +308,14 @@ class OrderController extends Controller
             $totalVat      = $order->orderUnits->sum('vat') + $order->orderUnits->sum('generalCost') + $order->orderUnits->sum('workWages') + $order->orderUnits->sum('profitMargin');
             $totalPrice    = $order->orderUnits()->sum('totalPrice');
 
+            if (! $order->sendNotification) {
+                $order->admin->notify(new SalesCreateOrderNotification($order));
+
+                $order->update([
+                    'sendNotification' => true,
+                ]);
+            }
+
             $order->update([
                 'subTotal'           => $subTotal,
                 'totalBusbar'        => $totalBusbar,
@@ -334,6 +349,7 @@ class OrderController extends Controller
             'status'           => 'required|in:negotiationStage,sendPurchase,purchased,sendInstall,installed,clientDidNotRespond,projectCancelled',
             'admin_buy_id'     => 'required_if:status,sendPurchase|exists:admins,id',
             'admin_install_id' => 'required_if:status,sendInstall|exists:admins,id',
+
         ]);
         if (
             $data['status'] === 'sendInstall'
@@ -348,6 +364,8 @@ class OrderController extends Controller
         } elseif ($request->status == "purchased") {
             $data['admin_install_id'] = null;
         }
+
+        $data['verify'] = true;
 
         $order->update($data);
 
@@ -374,9 +392,6 @@ class OrderController extends Controller
 
         return ApiResponse::sendResponse(true, 'Order updated successfully', DetailsOrderResource::make($order));
     }
-
-
-
 
     // 'status' => [
     //     Rule::in([

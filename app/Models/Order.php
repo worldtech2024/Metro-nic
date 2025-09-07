@@ -20,6 +20,7 @@ class Order extends Model
         'admin_install_id',
         'orderNumber',
         'projectName',
+        'sendNotification',
         'send',
         'CustomerFileNumber',
         'description',

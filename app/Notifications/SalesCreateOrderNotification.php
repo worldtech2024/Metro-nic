@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -7,19 +8,17 @@ use NotificationChannels\Fcm\FcmChannel;
 use NotificationChannels\Fcm\FcmMessage;
 use NotificationChannels\Fcm\Resources\Notification as FcmNotification;
 
-class UpdateOrderNotification extends Notification
+class SalesCreateOrderNotification extends Notification
 {
-    use Queueable;
+   use Queueable;
 
     /**
      * Create a new notification instance.
      */
     protected $order;
-    protected $type;
-    public function __construct($order, $type)
+    public function __construct($order)
     {
         $this->order = $order;
-        $this->type  = $type;
     }
 
     public function via($notifiable)
@@ -31,26 +30,24 @@ class UpdateOrderNotification extends Notification
     {
         return (new FcmMessage(
             notification: new FcmNotification(
-                title: 'تم تعيينك للعمل',
-                body: 'تم تعيينك كموظف ' . ($this->type == 'buy' ? 'شراء' : 'تركيب') . ' للعمل ' . $this->order->projectName
+                title: 'Your request has been accepted',
+                body: 'The request has been accepted and is being processed 😊' . $this->order->projectName
             )
         ))->custom([
-
-            'android' => [
-                'notification' => ['color' => '#FFD700' ],
-                'fcm_options'  => ['analytics_label' => 'order_update'],
-            ],
-            'apns'    => [
-                'fcm_options' => ['analytics_label' => 'order_update'],
-            ],
-        ]);
+                    'android' => [
+                       'notification' => ['color' => '#FFD700'],
+                        'fcm_options' => ['analytics_label' => 'order_created'],
+                    ],
+                    'apns' => [
+                        'fcm_options' => ['analytics_label' => 'order_created'],
+                    ],
+                ]);
     }
 
     public function toArray($notifiable)
     {
         return [
             'order_id' => $this->order->id,
-            'type'     => $this->type,
         ];
     }
 }

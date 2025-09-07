@@ -9,6 +9,7 @@ use App\Exports\CustomerExport;
 use App\Trait\ApiFilterPaginate;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Rap2hpoutre\FastExcel\FastExcel;
 use App\Http\Requests\CustomerRequest;
@@ -23,10 +24,10 @@ class CustomerController extends Controller
      */
     public function index(Request $request)
     {
-
+        $country = Auth::user()->country_id;
         $customers = $this->filterPaginateResource(
             $request,
-            User::query()->latest(),
+            User::query()->where('country_id', $country)->latest(),
             ['name', 'email', 'phone', 'country_id'],
             ['country'],
             CustomerResource::class,
