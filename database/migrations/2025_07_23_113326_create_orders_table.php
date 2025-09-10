@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('country_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('admin_id')->constrained('admins')->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('admin_buy_id')->nullable()->constrained('admins')->nullOnDelete();
             $table->foreignId('admin_install_id')->nullable()->constrained('admins')->nullOnDelete();
             $table->boolean('sendNotification')->default(false);

@@ -40,8 +40,6 @@ Route::middleware(['auth:sanctum', EnsureUser::class])->group(function () {
     Route::apiResource('products', ProductController::class);
     Route::post('/products/import', [ProductController::class, 'import']);
 
-    // -----------------Hidden Costs-----------------
-    Route::apiResource('hidden-costs', HiddenCostController::class);
 
     // -----------------Product Groups-----------------
     Route::apiResource('product-groups', ProductGroupController::class);

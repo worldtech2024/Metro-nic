@@ -21,6 +21,18 @@ class CountryFactory extends Factory
             'name_ar' => $this->faker->country(),
             'code' => $this->faker->countryCode(),
             'currency' => $this->faker->currencyCode(),
+            'mobile' => $this->faker->phoneNumber(),
+            'address' => $this->faker->address(),
+            'phone' => $this->faker->phoneNumber(),
+            'email' => $this->faker->email(),
+            'faxNumber' => $this->faker->phoneNumber(),
+            "workWages" => $this->faker->randomFloat(2, 0, 100),
+            "generalCost" => $this->faker->randomFloat(2, 0, 100),
+            "profitMargin" => $this->faker->randomFloat(2, 0, 100),
+            "tax" => $this->faker->randomFloat(2, 0, 100),
+            "wirePrice" => $this->faker->randomFloat(2, 0, 100),
+            'status' => $this->faker->randomElement(['active', 'inactive']),
+
         ];
     }
 }

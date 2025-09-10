@@ -1,10 +1,9 @@
 <?php
-
 namespace App\Models;
 
-use App\Models\User;
 use App\Models\Admin;
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,6 +13,17 @@ class Country extends Model
     protected $fillable = [
         'name_en',
         'name_ar',
+        "workWages",
+        "generalCost",
+        "profitMargin",
+        "tax",
+        "wirePrice",
+        'address',
+        'phone',
+        'mobile',
+        'email',
+        'faxNumber',
+        'status',
         'code',
         'currency',
     ];

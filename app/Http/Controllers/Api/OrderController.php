@@ -33,13 +33,12 @@ class OrderController extends Controller
     public function index(Request $request)
     {
 
-        $country = Auth::user()->country_id; // get country of admin login using token
         $type    = Auth::user()->role;       // get role of admin login using token
 
         if ($type == 'power') {
             $orders = $this->filterPaginateResource(
                 $request,
-                Order::query()->where('send', 'power')->where('country_id', $country)->latest(),
+                Order::query()->where('send', 'power')->latest(),
                 // give all orders where send is power and country is admin country
                 ['projectName', 'status'],
                 // search projectName and status
@@ -50,7 +49,7 @@ class OrderController extends Controller
         } elseif ($type == 'control') {
             $orders = $this->filterPaginateResource(
                 $request,
-                Order::query()->where('send', 'control')->where('country_id', $country)->latest(),
+                Order::query()->where('send', 'control')->latest(),
                 // give all orders where send is control and country is admin country
                 ['projectName', 'status'],
                 [],
@@ -60,7 +59,7 @@ class OrderController extends Controller
         } else {
             $orders = $this->filterPaginateResource(
                 $request,
-                Order::query()->where('country_id', $country)->latest(),
+                Order::query()->latest(),
                 // give all orders where country is admin country
                 ['projectName', 'status'],
                 [],
@@ -207,6 +206,7 @@ class OrderController extends Controller
         $order['country_id']  = User::find($order['user_id'])->country_id;
         $order                = Order::create($order);
         $order['description'] = $request->description ?? '';
+        $order['country'] = $order->country;
         return ApiResponse::sendResponse(true, 'Order created successfully', $order);
     }
 

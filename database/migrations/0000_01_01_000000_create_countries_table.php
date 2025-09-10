@@ -15,8 +15,19 @@ return new class extends Migration
             $table->id();
             $table->string('name_en');
             $table->string('name_ar');
-            $table->string('code')->nullable();
-            $table->string('currency')->nullable();
+            $table->string('address');
+            $table->string('phone');
+            $table->string('mobile');
+            $table->string('email');
+            $table->string('faxNumber');
+            $table->string('code');
+            $table->string('currency');
+            $table->double('workWages');    // أجور العمالة
+            $table->double('generalCost');  // التكاليف العامة
+            $table->double('profitMargin'); // هامش الربح
+            $table->double('tax');          // الضريبة
+            $table->double('wirePrice')->default(55);
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }
