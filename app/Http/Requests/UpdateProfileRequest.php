@@ -42,8 +42,8 @@ class UpdateProfileRequest extends FormRequest
             'username' => 'sometimes|string|unique:admins,username,' . $user->id,
             "image" => 'sometimes',
 
-            'email' => 'nullable|email|unique:users,email,' . $user->id,
-            'role' => 'sometimes|array',
+            'email' => 'sometimes|email|unique:admins,email,' . $user->id,
+            'role' => 'sometimes',
             'phone' => [
                 'sometimes',
                 'unique:admins,phone,' . $user->id,

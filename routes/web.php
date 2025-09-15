@@ -7,4 +7,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('test', function () {
+    Artisan::call('storage:link');
+    Artisan::call('migrate');
+});
+
 

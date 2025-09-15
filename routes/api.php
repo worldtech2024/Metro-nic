@@ -4,7 +4,6 @@ use App\Http\Controllers\Api\AuthAdminController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\CustomerController;
-use App\Http\Controllers\Api\HiddenCostController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
@@ -12,6 +11,7 @@ use App\Http\Controllers\Api\ProductGroupController;
 use App\Http\Middleware\EnsureUser;
 use Illuminate\Support\Facades\Route;
 
+Route::apiResource('countries', CountryController::class);
 Route::post('/register', [AuthAdminController::class, 'register']);
 Route::post('/login', [AuthAdminController::class, 'login']);
 Route::post('/verify-otp', [AuthAdminController::class, 'verifyOTP'])->name('verify-otp');
@@ -31,7 +31,7 @@ Route::middleware(['auth:sanctum', EnsureUser::class])->group(function () {
     Route::put('employees/{admin}', [AuthAdminController::class, 'update']);
 
     // -----------------Countries-----------------
-    Route::apiResource('countries', CountryController::class);
+    // Route::apiResource('countries', CountryController::class);
 
     // -----------------Brands-----------------
     Route::apiResource('brands', BrandController::class);
@@ -39,7 +39,6 @@ Route::middleware(['auth:sanctum', EnsureUser::class])->group(function () {
     // -----------------Products-----------------
     Route::apiResource('products', ProductController::class);
     Route::post('/products/import', [ProductController::class, 'import']);
-
 
     // -----------------Product Groups-----------------
     Route::apiResource('product-groups', ProductGroupController::class);
@@ -64,4 +63,3 @@ Route::middleware(['auth:sanctum', EnsureUser::class])->group(function () {
     Route::get('/dashboard', [HomeController::class, 'dashboard']);
 
 });
-

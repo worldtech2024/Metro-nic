@@ -20,13 +20,17 @@ return new class extends Migration
             $table->string('mobile');
             $table->string('email');
             $table->string('faxNumber');
+            $table->string('bankName');
+            $table->string('IBAN');
+            $table->string('accountNumber');
+            $table->string('accountName');
             $table->string('code');
             $table->string('currency');
-            $table->double('workWages');    // أجور العمالة
-            $table->double('generalCost');  // التكاليف العامة
-            $table->double('profitMargin'); // هامش الربح
-            $table->double('tax');          // الضريبة
-            $table->double('wirePrice')->default(55);
+            $table->integer('workWages', 12);
+            $table->integer('generalCost', 12);
+            $table->integer('profitMargin', 12);
+            $table->integer('tax', 12);
+            $table->integer('wirePrice', 12)->default(55);
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
